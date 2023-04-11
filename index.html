@@ -216,7 +216,7 @@
       const date = dateFormat();
       if(name !== '' && text !== '') {
         comments.push({
-          name: name,
+          name: convChar(name),
           date: date,
           text: convChar(text),
           likes: 0,
