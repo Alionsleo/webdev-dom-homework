@@ -32,8 +32,8 @@
 
   <script>
     //начальный массив комментариев
-    const comments = [
-      {
+    let comments = [
+    /*  {
         name: "Глеб Фокин",
         date: "12.02.22 12:18",
         text: "Это будет первый комментарий на этой странице",
@@ -50,9 +50,31 @@
         activeLike: "-active-like",
         edit: "",
         save: "button-none"
-      }
+      }*/
     ];
 
+    const getComments = () => {
+      fetch("https://webdev-hw-api.vercel.app/api/v1/alena-ilina/comments", {
+        method: "GET",
+      }).then((response) => {
+        response.json().then((responseData) => {
+          const appComments = responseData.comments.map((comment) => {
+            return {
+              name: comment.author.name,
+              date: dateFormat(comment.date),
+              text: comment.text,
+              likes: comment.likes,
+              activeLike: comment.isLiked === false ? "" : "-active-like",
+              edit: "",
+              save: "button-none"
+            }
+          });
+          comments = appComments;
+          renderComments();
+        })
+      });
+    }
+    getComments();
     const commentBlock = document.querySelector('.comments');
 
 
@@ -101,12 +123,13 @@
     const initEditButtonsListener = () => {
       const editButtonsElements = document.querySelectorAll('.edit-button');
       for (const editButtonElement of editButtonsElements) {
-        editButtonElement.addEventListener('click', () => {
+        editButtonElement.addEventListener('click', (event) => {
           const index = editButtonElement.dataset.index;
           comments[index].text = `<textarea class="edit-comment-text edit-comment-text__${index}" rows="4" data-index="${index}">${comments[index].text}</textarea>`;
           comments[index].edit = 'button-none';
           comments[index].save = '';
           renderComments();
+          event.stopPropagation();
         });
       }
     };
@@ -114,7 +137,7 @@
     const initSaveButtonsListener = () => {
       const saveButtonsElements = document.querySelectorAll('.save-button');
       for (const saveButtonElement of saveButtonsElements) {
-        saveButtonElement.addEventListener('click', () => {
+        saveButtonElement.addEventListener('click', (event) => {
           const index = saveButtonElement.dataset.index;
           const editText = document.querySelector(`.edit-comment-text__${index}`).value;
           comments[index].text = convChar(editText);
@@ -122,6 +145,7 @@
           comments[index].save = 'button-none';
           comments[index].date = dateFormat();
           renderComments();
+          event.stopPropagation();
         });
       }
     };
@@ -162,15 +186,21 @@
     renderComments();
 
     //метод формирующий дату
-      const dateFormat = () => {
-      const d = new Date();
-      const day = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
-      const monthTmp = d.getMonth() + 1;
-      const month = monthTmp < 10 ? '0' + monthTmp : monthTmp;
-      const year = d.getFullYear() - 2000;
-      const hour = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
-      const minutes = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
-      return day + '.' + month + '.' + year + ' ' + hour + ':' + minutes;
+      const dateFormat = (date = '') => {
+        let d;
+        if(date === '') {
+          d = new Date();
+        }
+        else {
+          d = new Date(date);
+        }
+        const day = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
+        const monthTmp = d.getMonth() + 1;
+        const month = monthTmp < 10 ? '0' + monthTmp : monthTmp;
+        const year = d.getFullYear() - 2000;
+        const hour = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
+        const minutes = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+        return day + '.' + month + '.' + year + ' ' + hour + ':' + minutes;
     };
     //обработка пустых полей
     const nameElem = document.querySelector('.add-form-name');
@@ -215,7 +245,16 @@
       const text = document.querySelector('.add-form-text').value;
       const date = dateFormat();
       if(name !== '' && text !== '') {
-        comments.push({
+        fetch("https://webdev-hw-api.vercel.app/api/v1/alena-ilina/comments", {
+          method: "POST",
+          body: JSON.stringify({
+            text: convChar(text),
+            name: convChar(name),
+          })
+        }).then((response) => {
+          getComments();
+        });
+        /*comments.push({
           name: convChar(name),
           date: date,
           text: convChar(text),
@@ -223,7 +262,7 @@
           activeLike: "",
           edit: "",
           save: "button-none"
-        });
+        });*/
         renderComments();
         //очистка полей
         document.querySelector('.add-form-name').value = '';
