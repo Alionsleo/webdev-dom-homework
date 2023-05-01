@@ -187,13 +187,7 @@
 
     //метод формирующий дату
       const dateFormat = (date = '') => {
-        let d;
-        if(date === '') {
-          d = new Date();
-        }
-        else {
-          d = new Date(date);
-        }
+        let d = new Date(date || undefined);
         const day = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
         const monthTmp = d.getMonth() + 1;
         const month = monthTmp < 10 ? '0' + monthTmp : monthTmp;
